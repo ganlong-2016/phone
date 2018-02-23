@@ -9,7 +9,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CallLog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -26,12 +25,13 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 
+import bchd.com.phone.BaseActivity;
 import bchd.com.phone.R;
 import bchd.com.phone.model.PhoneCallLog;
 import bchd.com.phone.utils.Mutils;
 import bchd.com.phone.utils.PhoneSharePreferences;
 
-public class PhoneActivity extends AppCompatActivity implements View.OnClickListener {
+public class PhoneActivity extends BaseActivity implements View.OnClickListener {
     private Button sendButton;
     private Button historyButton;
     private EditText phoneEditText;
@@ -72,27 +72,26 @@ public class PhoneActivity extends AppCompatActivity implements View.OnClickList
         try {
             ois = new ObjectInputStream(new FileInputStream(Mutils.fullFile()));
             mDatas = (ArrayList) ois.readObject();
-            if (mDatas == null){
+            if (mDatas == null) {
                 mDatas = new ArrayList<PhoneCallLog>();
             }
             Logger.d(mDatas.size());
         } catch (Exception e) {
             e.printStackTrace();
-        }finally{
+        } finally {
             try {
                 if (ois != null)
-                     ois.close();
+                    ois.close();
             } catch (IOException e) {
             }
-
         }
     }
 
-    void checkShouldUpdatePhone(){
-        String key =  PhoneSharePreferences.getUserAccount() + "lastCallPhone";
+    void checkShouldUpdatePhone() {
+        String key = PhoneSharePreferences.getUserAccount() + "lastCallPhone";
         SharedPreferences sharePreferences = getSharedPreferences(key, Context.MODE_APPEND);
-        String lastcallphone = sharePreferences.getString("lastCallPhone","");
-        if (!TextUtils.isEmpty(lastcallphone)){
+        String lastcallphone = sharePreferences.getString("lastCallPhone", "");
+        if (!TextUtils.isEmpty(lastcallphone)) {
             Logger.d(lastcallphone);
             recordPhone(lastcallphone);
         }
@@ -100,29 +99,28 @@ public class PhoneActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.button_send){
+        if (v.getId() == R.id.button_send) {
             if (TextUtils.isEmpty(phoneEditText.getText()) ||
-                    !Mutils.isPhone(phoneEditText.getText().toString())){
-                Toast.makeText(this,"请输入正确的电话号码",Toast.LENGTH_SHORT).show();
+                    !Mutils.isPhone(phoneEditText.getText().toString())) {
+                Toast.makeText(this, "请输入正确的电话号码", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            String key =  PhoneSharePreferences.getUserAccount() + "lastCallPhone";
+            String key = PhoneSharePreferences.getUserAccount() + "lastCallPhone";
             SharedPreferences sharePreferences = getSharedPreferences(key, Context.MODE_APPEND);
-            sharePreferences.edit().putString("lastCallPhone",phoneEditText.getText().toString()).
-                    putLong("lastCallPhoneTime",System.currentTimeMillis()).commit();
+            sharePreferences.edit().putString("lastCallPhone", phoneEditText.getText().toString()).
+                    putLong("lastCallPhoneTime", System.currentTimeMillis()).commit();
 
-            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:"+phoneEditText.getText().toString()));
+            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phoneEditText.getText().toString()));
             startActivity(intent);
-        }
-        else if(v.getId() == R.id.button_history){
-            Intent intent = new Intent(this,CalllogActivity.class);
-            intent.putExtra("mDatas",mDatas);
+        } else if (v.getId() == R.id.button_history) {
+            Intent intent = new Intent(this, CalllogActivity.class);
+            intent.putExtra("mDatas", mDatas);
             startActivity(intent);
         }
     }
 
-    private void recordPhone(String phone){
+    private void recordPhone(String phone) {
         Uri uri = CallLog.Calls.CONTENT_URI;
         String[] projection = {CallLog.Calls.DATE,
                 CallLog.Calls.NUMBER,
@@ -133,17 +131,17 @@ public class PhoneActivity extends AppCompatActivity implements View.OnClickList
                 CallLog.Calls.DEFAULT_SORT_ORDER);
     }
 
-    private class myAsyncQueryHandler extends AsyncQueryHandler{
-        public myAsyncQueryHandler(ContentResolver contentResolver){
+    private class myAsyncQueryHandler extends AsyncQueryHandler {
+        public myAsyncQueryHandler(ContentResolver contentResolver) {
             super(contentResolver);
         }
 
         @Override
         protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-            String key =  PhoneSharePreferences.getUserAccount() + "lastCallPhone";
+            String key = PhoneSharePreferences.getUserAccount() + "lastCallPhone";
             SharedPreferences sharePreferences = getSharedPreferences(key, Context.MODE_APPEND);
-            String lastcallphone = sharePreferences.getString("lastCallPhone","");
-            long lastcallphoneTime = sharePreferences.getLong("lastCallPhoneTime",0);
+            String lastcallphone = sharePreferences.getString("lastCallPhone", "");
+            long lastcallphoneTime = sharePreferences.getLong("lastCallPhoneTime", 0);
 
             if (cursor != null && cursor.getCount() > 0) {
                 cursor.moveToFirst();
@@ -151,7 +149,7 @@ public class PhoneActivity extends AppCompatActivity implements View.OnClickList
                     cursor.moveToPosition(i);
                     int type = cursor.getInt(cursor
                             .getColumnIndex(CallLog.Calls.TYPE));
-                    if (type == CallLog.Calls.OUTGOING_TYPE){
+                    if (type == CallLog.Calls.OUTGOING_TYPE) {
                         Date date = new Date(cursor.getLong(cursor
                                 .getColumnIndex(CallLog.Calls.DATE)));
                         String number = cursor.getString(cursor
@@ -165,13 +163,12 @@ public class PhoneActivity extends AppCompatActivity implements View.OnClickList
                         callLogBean.setPhoneNumber(number);
                         if (null == cachedName || TextUtils.isEmpty(cachedName)) {
                             callLogBean.setNickname(number);
-                        }
-                        else
+                        } else
                             callLogBean.setNickname(cachedName);
                         callLogBean.setCallduration(duration);
                         Logger.d(Math.abs(date.getTime() - lastcallphoneTime));
                         if (Math.abs(date.getTime() - lastcallphoneTime) <= 10000 &&
-                                TextUtils.equals(lastcallphone,number)){
+                                TextUtils.equals(lastcallphone, number)) {
                             saveCalllog(callLogBean);
                             break;
                         }
@@ -181,24 +178,24 @@ public class PhoneActivity extends AppCompatActivity implements View.OnClickList
             super.onQueryComplete(token, cookie, cursor);
         }
 
-        private void saveCalllog(PhoneCallLog callLog){
+        private void saveCalllog(PhoneCallLog callLog) {
             Logger.d(callLog);
             ObjectOutputStream outputStream = null;
             try {
                 outputStream = new ObjectOutputStream(new FileOutputStream(Mutils.fullFile()));
                 outputStream.reset();
-                mDatas.add(0,callLog);
+                mDatas.add(0, callLog);
                 outputStream.writeObject(mDatas);
-                String key =  PhoneSharePreferences.getUserAccount() + "lastCallPhone";
+                String key = PhoneSharePreferences.getUserAccount() + "lastCallPhone";
                 SharedPreferences sharePreferences = getSharedPreferences(key, Context.MODE_APPEND);
                 sharePreferences.edit().remove("lastCallPhone").remove("lastCallPhoneTime").apply();
-            }catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 try {
                     if (outputStream != null)
-                       outputStream.close();
-                }catch (IOException e){
+                        outputStream.close();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

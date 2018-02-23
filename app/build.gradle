@@ -5,18 +5,32 @@ android {
     buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "bchd.com.phone"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "v2.0.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs{
+        myConfig{
+            storeFile file('../weidien.jks')
+            storePassword '123456'
+            keyAlias 'daochengphone'
+            keyPassword '123456'
+            v2SigningEnabled false
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.myConfig
+        }
+        debug{
+            signingConfig signingConfigs.myConfig
         }
     }
+
 }
 
 dependencies {
@@ -30,5 +44,8 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.orhanobut:logger:1.15'
     compile 'com.google.code.gson:gson:2.8.1'
+    compile 'com.alibaba:fastjson:1.2.31'
     testCompile 'junit:junit:4.12'
+    compile files('libs/aliyun-oss-sdk-android-2.3.0.jar')
+
 }
